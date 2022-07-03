@@ -1,5 +1,5 @@
+mod algo;
 mod game;
+mod random;
 
-fn main() {
-  println!("Hello, world!");
-}
+fn main() {}
