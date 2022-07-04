@@ -1,7 +1,7 @@
 use crate::random::rand_range;
 use std::collections::HashSet;
 
-type Position = (usize, usize);
+pub type Position = (usize, usize);
 
 pub enum OpenResult {
   Mine,
@@ -12,10 +12,10 @@ pub enum OpenResult {
 pub struct Board {
   width: usize,
   height: usize,
-  game_over: bool,
+  pub game_over: bool,
   pub total_mines: usize,
   pos_mines_h: HashSet<Position>,
-  pos_flags: HashSet<Position>,
+  pub pos_flags: HashSet<Position>,
   pub pos_open: HashSet<Position>,
 }
 
@@ -48,40 +48,46 @@ impl Board {
       return OpenResult::Mine;
     } else {
       self.pos_open.insert(pos);
-      return OpenResult::NoMine(self.neighbors(pos));
+      return OpenResult::NoMine(self.neighbors_mines(pos));
     }
   }
 
   pub fn display_board(&mut self) {
+    print!("{}[2J", 27 as char);
+
     for i in 0..self.width {
       for j in 0..self.height {
-        let pos = (i, j);
+        let pos = (j, i);
         if !self.pos_open.contains(&pos) {
           print!("# ")
         } else if self.pos_mines_h.contains(&pos) {
           print!("* ")
+        } else if self.pos_flags.contains(&pos) {
+          print!("f ")
         } else {
-          print!("{} ", self.neighbors(pos))
+          print!("{} ", self.neighbors_mines(pos))
         }
       }
 
       println!("");
     }
+    println!("{}", "=".repeat(2 * self.width));
   }
 
   pub fn display_board_cheat(&mut self) {
     for i in 0..self.width {
       for j in 0..self.height {
-        let pos = (i, j);
+        let pos = (j, i);
         if self.pos_mines_h.contains(&pos) {
           print!("* ");
         } else {
-          print!("{} ", self.neighbors(pos));
+          print!("{} ", self.neighbors_mines(pos));
         }
       }
 
       println!("");
     }
+    println!("{}", "=".repeat(2 * self.width));
   }
 
   pub fn toggle_flag(&mut self, pos: Position) {
@@ -96,11 +102,17 @@ impl Board {
     }
   }
 
-  pub fn neighbors(&mut self, pos: Position) -> u8 {
+  pub fn neighbors_mines(&mut self, pos: Position) -> u8 {
     self
       .iter_neighbors(pos)
       .filter(|pos| self.pos_mines_h.contains(pos))
       .count() as u8
+  }
+
+  pub fn iter_neighbors_open(&mut self, pos: Position) -> impl Iterator<Item = Position> + '_ {
+    self
+      .iter_neighbors(pos)
+      .filter(|pos| self.pos_open.contains(&pos))
   }
 
   pub fn iter_neighbors(&mut self, (x, y): Position) -> impl Iterator<Item = Position> {
