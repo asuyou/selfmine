@@ -3,6 +3,7 @@ use std::collections::HashSet;
 
 pub type Position = (usize, usize);
 
+#[derive(PartialEq)]
 pub enum OpenResult {
   Mine,
   NoMine(u8),
@@ -44,6 +45,7 @@ impl Board {
 
   pub fn open(&mut self, pos: Position) -> OpenResult {
     if self.pos_mines_h.contains(&pos) {
+      println!("Opened Mine");
       self.game_over = true;
       return OpenResult::Mine;
     } else {
@@ -55,15 +57,15 @@ impl Board {
   pub fn display_board(&mut self) {
     print!("{}[2J", 27 as char);
 
-    for i in 0..self.width {
-      for j in 0..self.height {
-        let pos = (j, i);
-        if !self.pos_open.contains(&pos) {
+    for y in 0..self.height {
+      for x in 0..self.width {
+        let pos = (x, y);
+        if self.pos_flags.contains(&pos) {
+          print!("f ")
+        } else if !self.pos_open.contains(&pos) {
           print!("# ")
         } else if self.pos_mines_h.contains(&pos) {
           print!("* ")
-        } else if self.pos_flags.contains(&pos) {
-          print!("f ")
         } else {
           print!("{} ", self.neighbors_mines(pos))
         }
@@ -71,13 +73,12 @@ impl Board {
 
       println!("");
     }
-    println!("{}", "=".repeat(2 * self.width));
   }
 
   pub fn display_board_cheat(&mut self) {
-    for i in 0..self.width {
-      for j in 0..self.height {
-        let pos = (j, i);
+    for j in 0..self.height {
+      for i in 0..self.width {
+        let pos = (i, j);
         if self.pos_mines_h.contains(&pos) {
           print!("* ");
         } else {
@@ -87,7 +88,6 @@ impl Board {
 
       println!("");
     }
-    println!("{}", "=".repeat(2 * self.width));
   }
 
   pub fn toggle_flag(&mut self, pos: Position) {
@@ -96,7 +96,7 @@ impl Board {
     }
 
     if self.pos_flags.contains(&pos) {
-      self.pos_flags.remove(&pos);
+      // self.pos_flags.remove(&pos);
     } else {
       self.pos_flags.insert(pos);
     }
